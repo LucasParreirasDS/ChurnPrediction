@@ -27,9 +27,8 @@ df['Gender'] = encoder.fit_transform(df['Gender'])
 df = pd.get_dummies(df, columns=['Geography', 'NumOfProducts'])
 
 # Feature Selection and split target
-x = df[['NumOfProducts_2', 'NumOfProducts_1', 'Age', 'NumOfProducts_3', 'IsActiveMember', 'Geography_Germany']]
-y = df['Exited']
-
+x = df.copy()
+y = x.pop('Exited')
 y = y.values.ravel()
 
 # Apply SMOTE to balance the classes
