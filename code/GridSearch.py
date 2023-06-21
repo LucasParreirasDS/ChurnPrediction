@@ -11,7 +11,7 @@ from xgboost import XGBClassifier
 data = pd.read_csv('data/raw/Churn_Modelling.csv')
 
 df = data.copy()
-df.drop(['RowNumber', 'CustomerId', 'Surname'], axis=1, inplace=True)
+df.drop(['RowNumber', 'CustomerId', 'Surname', 'Tenure', 'EstimatedSalary', 'HasCrCard'], axis=1, inplace=True)
 
 # Preprocessing
  # Encoding our categorical features. We will use Labeling Encoder for the binaries and One Hot Encoding for the multi labels
@@ -24,18 +24,12 @@ x = df.copy()
 y = x.pop('Exited')
 y = y.values.ravel()
 
-# Applying cross-validation
+# Creating cross-validation
 kfold = StratifiedKFold(n_splits=5, random_state=0, shuffle=True)
 
 # Apply SMOTE to balance the classes
 smote = SMOTE(random_state=0)
 x, y = smote.fit_resample(x, y)
-
-# Define a instância do XGBClassifier
-model = XGBClassifier(objective='binary:logistic', eval_metric='auc')
-
-
-# Define your X and y variables
 
 # Create a pipeline with MinMaxScaler and XGBoost
 pipeline = Pipeline([
@@ -50,10 +44,8 @@ param_grid = {
     'xgb__n_estimators': [75, 100, 125, 150, 175]
 }
 
-# Create the GridSearchCV object with StratifiedKFold
+# Applying GridSearchCV object with StratifiedKFold
 grid_search = GridSearchCV(pipeline, param_grid, cv=kfold, scoring='recall', verbose=3)
-
-# Fit the GridSearchCV object to your data
 grid_search.fit(x, y)
 
 # Print the best parameters and best score

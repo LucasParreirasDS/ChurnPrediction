@@ -20,7 +20,7 @@ data = pd.read_csv('data/raw/Churn_Modelling.csv')
 
 df = data.copy()
     # df.drop(['RowNumber', 'CustomerId', 'Surname', 'Tenure', 'HasCrCard', 'EstimatedSalary'], axis=1, inplace=True)
-df.drop(['RowNumber', 'CustomerId', 'Surname', 'EstimatedSalary'], axis=1, inplace=True)
+df.drop(['RowNumber', 'CustomerId', 'Surname', 'EstimatedSalary', 'Tenure', 'HasCrCard'], axis=1, inplace=True)
 
 # Preprocessing
 encoder = LabelEncoder()
@@ -28,10 +28,10 @@ df['Gender'] = encoder.fit_transform(df['Gender'])
 df = pd.get_dummies(df, columns=['Geography', 'NumOfProducts'])
 
 # Feature Selection and split target
-x = df.copy()
-y = x.pop('Exited')
+x = df.copy().reset_index(drop=True)
+y = x.pop('Exited').reset_index(drop=True)
 
-y = y.values.ravel()
+#y = y.values.ravel()
 
 # Apply SMOTE to balance the classes
 smote = SMOTE(random_state=0)
@@ -39,18 +39,14 @@ x, y = smote.fit_resample(x, y)
 
 # Split the data into training, validation, and test sets
 x_cv, x_val, y_cv, y_val = train_test_split(x, y, test_size=0.2, random_state=42)
-x_train, x_test, y_train, y_test = train_test_split(x_cv, y_cv, test_size=0.25, random_state=42)  # 60% train, 20% validation, 20% test
+#x_train, x_test, y_train, y_test = train_test_split(x_cv, y_cv, test_size=0.25, random_state=42)  # 60% train, 20% validation, 20% test
 
 
 # Define the scaler
 scaler = StandardScaler()
 
 # Scale the features using the training data
-x_train = scaler.fit_transform(x_train)
-
-# Apply the same scaling transformation to the validation and test data
-x_val = scaler.transform(x_val)
-x_test = scaler.transform(x_test)
+x_val = scaler.fit_transform(x_val)
 
 # Define the XGBoost model with the best parameters
 model = XGBClassifier(objective='binary:logistic', eval_metric='auc', max_depth=10, learning_rate=0.5, n_estimators=125)
@@ -58,9 +54,13 @@ model = XGBClassifier(objective='binary:logistic', eval_metric='auc', max_depth=
 kfold = StratifiedKFold(n_splits=10, random_state=42, shuffle=True)
 i = 1
  
-for train_index, test_index in kfold.split(x_train, y_train):
-    x_train_fold, x_test_fold = x_train[train_index], x_train[test_index]
-    y_train_fold, y_test_fold = y_train[train_index], y_train[test_index]
+for train_index, test_index in kfold.split(x_cv, y_cv):
+    x_train_fold, x_test_fold = x_cv.iloc[train_index], x_cv.iloc[test_index]
+    y_train_fold, y_test_fold = y_cv.iloc[train_index], y_cv.iloc[test_index]
+    
+    
+    x_train_fold = scaler.fit_transform(x_train_fold)
+    x_test_fold = scaler.fit_transform(x_test_fold)
     
     # Train the model on the current fold
     model.fit(x_train_fold, y_train_fold)
@@ -101,7 +101,7 @@ print(f"F1-Score: {(val_f_score)*100:.2f}%")
 # Calculate and plot the confusion matrix for the test data
 cm = confusion_matrix(y_true=y_val, y_pred=y_val_pred)
 sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
+plt.xlabel("P R E D I C T E D")
+plt.ylabel("A C T U A L")
 plt.title("Confusion Matrix (Test Data)")
 plt.show()
