@@ -18,7 +18,7 @@ The primary objective of this machine learning project was to develop a predicti
 * Pandas, numpy, matplotlib, seaborn, scikit learn, imblearn
 
 
-## Project Description
+## Project Overview
 
 ### Approach
 * **Data Analysis:** Our approach involves robust exploratory data analysis with pandas and seaborn to visualize behavior trends and gauge the importance of various features.
